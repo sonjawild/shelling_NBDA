@@ -1,6 +1,6 @@
 #######################################################################################################
-######################################  R Code to Wild et al:   ################################
-### Network-based diffusion analysis reveals horizontal social transmission of a dolphin foraging technique ###
+######################################  R Code to Wild et al (2020):   ################################
+### Evidence for horizontal social transmission of a dolphin foraging technique ###
 
 ## load NBDA package v0.6.1 available at https://rdrr.io/github/whoppitt/NBDA/
 
