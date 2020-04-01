@@ -1,8 +1,8 @@
 #######################################################################################################
 ######################################  R Code to Wild et al (2020):   ################################
-### Evidence for horizontal social transmission of a dolphin foraging technique ###
+### Integrating genetic, environmental and social networks to reveal transmission pathways of a dolphin foraging innovation ###
 
-## load NBDA package v0.6.1 available at https://rdrr.io/github/whoppitt/NBDA/
+## load NBDA package available at https://rdrr.io/github/whoppitt/NBDA/
 
 install.packages("devtools")
 library(devtools)
@@ -39,7 +39,7 @@ ILV <- subset(ILV_all, subset=ILV_all$Number_sightings>10)
 IDs <- ILV$id_individual
 length(IDs) # 310 individuals remaining
 
-num <- which(colnames(SRI_all) %in% IDs) # extract positions of the 310 individuals
+num <- which(colnames(SRI_all) %in% IDs) # extract positions of the 310 individuals in the networks
 SRI <- SRI_all[num, num] # reduce association network to 310 individuals
 dim(SRI) # ensure dimensions are 310x310
 class(SRI) # ensure it is a matrix
@@ -49,7 +49,6 @@ num <- which(colnames(ecol_all) %in% IDs)
 ecol <- ecol_all[num, num]
 dim(ecol)
 class(ecol)
-
 
 # repeat for relatedness matrix
 num <- which(colnames(relate_all) %in% IDs)
@@ -68,13 +67,13 @@ for (i in 1:length(shellers)){ # for each sheller, extract the position in the n
 }
 
 order <- as.vector(order)
-OAc <- order # order of acquisition is stored as a vector with the position of informed individuals in the network(s)
+OAc <- order # order of acquisition is stored as a vector with the position of informed individuals in the network(s).
 
 ## prepare individual level variables
-Sex <- ILV$Sex_1_0
+Sex <- ILV$Sex_1_0 # sex as 0.5 for males, -0.5 for females and 0 for unknown sex
 Number_of_sightings <- ILV$Number_sightings-mean(ILV$Number_sightings)
-Av_water_depth <- ILV$Av_water_depth-mean(ILV$Av_water_depth)
-Av_group_size <- ILV$Av_group_size-mean(ILV$Av_group_size)
+Av_water_depth <- ILV$Av_water_depth-mean(ILV$Av_water_depth) # water depth averaged across each individual's sightings
+Av_group_size <- ILV$Av_group_size-mean(ILV$Av_group_size) # an individual's average number of group members
 
 ## Here, we want to set E as the baseline level of the factor (i.e. all zeroes = Haplotype E).
 
@@ -111,7 +110,7 @@ label <- "shelling1redhap"
 
 # create the NBDA Data Object 
 # since we are using the unconstrained version (where ILVs are allowed to separately influence social and asocial effects)
-# we only define asoc_ilv and int_ilv, but leave multi_ilv
+# we only define asoc_ilv and int_ilv, but do not define multi_ilv
 nbdaDataSHELLING_H2asBaseline <- nbdaData(label=label, assMatrix=assMatrix3, asoc_ilv=ILV, int_ilv=ILV, orderAcq=OAc, asocialTreatment="constant") # creates OADA object
 
 # in the NBDADataObject only asoc_ilv and int_ilv are defined, multi_ilv are "absent"
