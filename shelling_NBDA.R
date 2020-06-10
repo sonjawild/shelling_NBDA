@@ -1,5 +1,6 @@
 #######################################################################################################
 ######################################  R Code to Wild et al (2020):   ################################
+############################################ Current Biology ##########################################
 ### Integrating genetic, environmental and social networks to reveal transmission pathways of a dolphin foraging innovation ###
 
 ## load NBDA package available at https://rdrr.io/github/whoppitt/NBDA/
@@ -15,6 +16,7 @@ library(NBDA)
 setwd("..../data")
 
 ## save tabs from excel file Data S1 as separate csv files, then load
+## (available in the supplementary electronic material) 
 
 # read association network
 SRI_all <- read.csv("Association Matrix.csv", row.names=1, header=TRUE)
@@ -33,6 +35,7 @@ ILV_all <- read.csv("Additional File 5 - ILVs.csv", header=TRUE, sep=",")
 
 ILV_all[ILV_all=="<NA>"]=NA
 
+# simulations revealed that power of NBDA to detect learning is highest at a cut-off of 11 sightings (see STAR methods)
 # get list of IDs that have been seen at least 11 times
 ILV <- subset(ILV_all, subset=ILV_all$Number_sightings>10)
 
@@ -76,7 +79,7 @@ Av_water_depth <- ILV$Av_water_depth-mean(ILV$Av_water_depth) # water depth aver
 Av_group_size <- ILV$Av_group_size-mean(ILV$Av_group_size) # an individual's average number of group members
 
 ## Here, we want to set E as the baseline level of the factor (i.e. all zeroes = Haplotype E).
-
+# see STAR methods for details
 HaplotypeH <- (ILV$Haplotype=="H")*1
 HaplotypeH[is.na(HaplotypeH)]<-0
 HaplotypeE <- (ILV$Haplotype=="E")*1
@@ -102,7 +105,7 @@ HaplotypeD <- matrix(data = HaplotypeD, nrow=length(IDs), byrow=F)
 HaplotypeF <- matrix(data = HaplotypeF, nrow=length(IDs), byrow=F)
 HaplotypeNotED<- matrix(data = HaplotypeNotED, nrow=length(IDs), byrow=F)
 
-# label ILVs
+# ILVs need to be combined into a character vector to create the NBDA data object
 ILV <- c("Sex","Number_of_sightings","Av_water_depth","Av_group_size","HaplotypeH","HaplotypeNotED","HaplotypeD","HaplotypeF") 
 
 # label for NBDA object
@@ -110,8 +113,17 @@ label <- "shelling1redhap"
 
 # create the NBDA Data Object 
 # since we are using the unconstrained version (where ILVs are allowed to separately influence social and asocial effects)
+# we are using the unconstrained models, where ILVs can influence social and asocial learning independently
 # we only define asoc_ilv and int_ilv, but do not define multi_ilv
-nbdaDataSHELLING_H2asBaseline <- nbdaData(label=label, assMatrix=assMatrix3, asoc_ilv=ILV, int_ilv=ILV, orderAcq=OAc, asocialTreatment="constant") # creates OADA object
+# multiplicative models (multi_ilv) allow ILVs to influence both social and asocial learning
+# but are assumed to do so to the same extent
+nbdaDataSHELLING_H2asBaseline <- nbdaData(label=label, 
+                                          assMatrix=assMatrix3, # array with association matrices
+                                          asoc_ilv=ILV, # influencing asocial learning. refers to the character vector with the ILV matrices
+                                          int_ilv=ILV, # influencing social learning. 
+                                          multi_ilv="ILVabsent", # we are not fitting multiplicative models
+                                          orderAcq=OAc, # individual three-letter codes in order of acquisition
+                                          asocialTreatment="constant") # creates OADA object
 
 # in the NBDADataObject only asoc_ilv and int_ilv are defined, multi_ilv are "absent"
 nbdaDataSHELLING_H2asBaseline@asoc_ilv 
@@ -529,7 +541,7 @@ variable_support <- variableSupport(newTableSHELLING, includeAsocial = T)
 variable_support
 write.csv(variable_support, file="variable_support_shelling_int_sep.csv")
 
-# extract weighted medians for each variable
+# extract weighted medians for each variable (model averaging)
 MLE_med  <- modelAverageEstimates(newTableSHELLING,averageType = "median")
 MLE_med
 write.csv(MLE_med,file="modelWeightedMediansSHELLING.csv")
@@ -609,7 +621,7 @@ model.best.social@aicc
 
 # plot profile likelihoods 
 # (which=1 plots for the social learning parameter for social transmission along the network)
-# repeat for which=2-4 to extract profile likelihoods for all other paramters too
+# repeat for which=2-4 to extract profile likelihoods for all other parameters too
 plotProfLik(which=1,model=model.best.social,range=c(0,150), resolution=20)
 plotProfLik(which=1,model=model.best.social,range=c(0,20), resolution=50) # adjust range where plot crosses dashed line (lower)
 profLikCI(which=1,model=model.best.social,upperRange=c(120,150),lowerRange=c(0,15)) 
